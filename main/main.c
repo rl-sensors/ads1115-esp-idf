@@ -47,7 +47,6 @@ void app_main(void)
     i2c_ads1115_config_t ads1115_config = {
         .ads1115_device.scl_speed_hz = MASTER_FREQUENCY,
         .ads1115_device.device_address = ADS1115_DEFAULT_ADDRESS,
-        .addr_wordlen = 1,
         .write_time_ms = 10,
     };
 
@@ -56,18 +55,31 @@ void app_main(void)
 
     vTaskDelay(pdMS_TO_TICKS(1000));
 
+    ADS1115_CONFIG_REGISTER_Type config = {
+            .bit = {
+                .OS = 1,
+                .MUX = ADS1115_MUX_0_1,
+                .PGA = ADS1115_FSR_2_048,
+                .MODE = ADS1115_MODE_CONTINUOUS,
+                .DR = ADS1115_SPS_860,
+                .COMP_MODE = 1,
+                .COMP_POL = 0,
+                .COMP_LAT = 0,
+                .COMP_QUE = 0b11
+            }
+    };
+
     // Init the ADS1115
     // FSR2.048, 475SPS,
-    const uint16_t config = 0b1000010011010011;
+    // const uint16_t config_b = 0b1000010011010011; //Sending data: 1, 132, 211
 
     uint8_t config_buf[2] = "";
-    ESP_ERROR_CHECK(i2c_ads1115_read(ads1115_handle, ADS1115_RA_CONFIG, config_buf, 2));
+    ESP_ERROR_CHECK(i2c_ads1115_read(ads1115_handle, ADS1115_CONFIG_REGISTER_ADDR, config_buf, 2));
     ESP_LOGI(TAG, "Read initial config config:  %d, %d", config_buf[0], config_buf[1]);
 
-    ESP_ERROR_CHECK(i2c_ads1115_write_two_bytes(ads1115_handle, ADS1115_RA_CONFIG, &config, sizeof(config)));
-    ESP_LOGI(TAG, "Written configuration: %d", config);
+    ESP_ERROR_CHECK(i2c_ads1115_write_two_bytes(ads1115_handle, ADS1115_CONFIG_REGISTER_ADDR,  (uint16_t *) &config.bit, sizeof(config)));
 
-    ESP_ERROR_CHECK(i2c_ads1115_read(ads1115_handle, ADS1115_RA_CONFIG, config_buf, 2));
+    ESP_ERROR_CHECK(i2c_ads1115_read(ads1115_handle, ADS1115_CONFIG_REGISTER_ADDR, config_buf, 2));
     ESP_LOGI(TAG, "Read config: %d, %d", config_buf[0], config_buf[1]);
 
     ESP_ERROR_CHECK(i2c_ads1115_read(ads1115_handle, ADS1115_LO_THRESH_REGISTER_ADDR, config_buf, 2));
@@ -83,19 +95,6 @@ void app_main(void)
     ESP_LOGI(TAG, "Written lo configuration: %d", lo);
     ESP_LOGI(TAG, "Written hi configuration: %d", hi);
 
-
-    /*
-    setMultiplexer(ADS1115_MUX_P0_N1);
-    setGain(ADS1115_PGA_2P048);
-    setMode(ADS1115_MODE_SINGLESHOT);
-    setRate(ADS1115_RATE_128);
-    setComparatorMode(ADS1115_COMP_MODE_HYSTERESIS);
-    setComparatorPolarity(ADS1115_COMP_POL_ACTIVE_LOW);
-    setComparatorLatchEnabled(ADS1115_COMP_LAT_NON_LATCHING);
-    setComparatorQueueMode(ADS1115_COMP_QUE_DISABLE);
-     }!ChfQ-VG1]<;-c
-     */
-
     uint8_t read_buf[2];
     int16_t raw = 0;
     float voltage = 0;
@@ -104,9 +103,7 @@ void app_main(void)
     vTaskDelay(pdMS_TO_TICKS(1000));
 
     while (1) {
-//        ESP_ERROR_CHECK(i2c_ads1115_write_two_bytes(ads1115_handle, ADS1115_RA_CONFIG, &config, sizeof(config)));
-//        vTaskDelay(pdMS_TO_TICKS(25));
-        ESP_ERROR_CHECK(i2c_ads1115_read(ads1115_handle, ADS1115_RA_CONVERSION, read_buf, 2));
+        ESP_ERROR_CHECK(i2c_ads1115_read(ads1115_handle, ADS1115_CONVERSION_REGISTER_ADDR, read_buf, 2));
         raw = ((uint16_t)read_buf[0] << 8) | (uint16_t)read_buf[1];
 
         // for FSR of 101b (bit 11:9)

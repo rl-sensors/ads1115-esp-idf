@@ -11,9 +11,6 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
-#define I2C_ADS1115_MAX_TRANS_UNIT (48)
-// Different ADS1115 device might share one I2C bus
-
 static const char TAG[] = "i2c-ads1115";
 
 esp_err_t i2c_ads1115_init(i2c_master_bus_handle_t bus_handle, const i2c_ads1115_config_t *ads1115_config, i2c_ads1115_handle_t *ads1115_handle)
@@ -32,10 +29,9 @@ esp_err_t i2c_ads1115_init(i2c_master_bus_handle_t bus_handle, const i2c_ads1115
         ESP_GOTO_ON_ERROR(i2c_master_bus_add_device(bus_handle, &i2c_dev_conf, &out_handle->i2c_dev), err, TAG, "i2c new bus failed");
     }
 
-    out_handle->buffer = (uint8_t*)calloc(1, ads1115_config->addr_wordlen + I2C_ADS1115_MAX_TRANS_UNIT);
+    out_handle->buffer = (uint8_t*)calloc(1, 16);
     ESP_GOTO_ON_FALSE(out_handle->buffer, ESP_ERR_NO_MEM, err, TAG, "no memory for i2c ads1115 device buffer");
 
-    out_handle->addr_wordlen = ads1115_config->addr_wordlen;
     out_handle->write_time_ms = ads1115_config->write_time_ms;
     *ads1115_handle = out_handle;
 
@@ -47,17 +43,6 @@ err:
     }
     free(out_handle);
     return ret;
-}
-
-esp_err_t i2c_ads1115_write(i2c_ads1115_handle_t ads1115_handle, uint8_t reg_addr, const uint8_t *data, uint32_t size) {
-    ESP_RETURN_ON_FALSE(ads1115_handle, ESP_ERR_NO_MEM, TAG, "no mem for buffer");
-//    for (int i = 0; i < ads1115_handle->addr_wordlen; i++) {
-//        ads1115_handle->buffer[i] = (address & (0xff << ((ads1115_handle->addr_wordlen - 1 - i) * 8))) >> ((ads1115_handle->addr_wordlen - 1 - i) * 8);
-//    }
-    ads1115_handle->buffer[0] = reg_addr;
-    memcpy(ads1115_handle->buffer + 1, data, size);
-
-    return i2c_master_transmit(ads1115_handle->i2c_dev, ads1115_handle->buffer, size + 1, -1);
 }
 
 esp_err_t i2c_ads1115_write_two_bytes(i2c_ads1115_handle_t ads1115_handle, uint8_t reg_addr, const uint16_t *data, uint32_t size) {

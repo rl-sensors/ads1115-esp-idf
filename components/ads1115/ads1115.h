@@ -12,11 +12,6 @@ extern "C" {
 #define ADS1115_ADDRESS_ADDR_SCL    0x4B // address pin tied to SCL pin
 #define ADS1115_DEFAULT_ADDRESS     ADS1115_ADDRESS_ADDR_GND
 
-#define ADS1115_RA_CONVERSION       0x00
-#define ADS1115_RA_CONFIG           0x01
-#define ADS1115_RA_LO_THRESH        0x02
-#define ADS1115_RA_HI_THRESH        0x03
-
 typedef enum { // register address
     ADS1115_CONVERSION_REGISTER_ADDR = 0,
     ADS1115_CONFIG_REGISTER_ADDR,
@@ -78,13 +73,11 @@ typedef union { // configuration register
 
 typedef struct {
     i2c_device_config_t ads1115_device;  /*!< Configuration for ads1115 device */
-    uint8_t addr_wordlen;               /*!< block address wordlen */
     uint8_t write_time_ms;              /*!< ads1115 write time, typically 10ms*/
 } i2c_ads1115_config_t;
 
 struct i2c_ads1115_t {
     i2c_master_dev_handle_t i2c_dev;      /*!< I2C device handle */
-    uint8_t addr_wordlen;                 /*!< block address wordlen */
     uint8_t *buffer;                      /*!< I2C transaction buffer */
     uint8_t write_time_ms;                /*!< I2C ads1115 write time(ms)*/
 };
@@ -103,17 +96,6 @@ typedef struct i2c_ads1115_t *i2c_ads1115_handle_t;
  * @return ESP_OK: Init success. ESP_FAIL: Not success.
  */
 esp_err_t i2c_ads1115_init(i2c_master_bus_handle_t bus_handle, const i2c_ads1115_config_t *ads1115_config, i2c_ads1115_handle_t *ads1115_handle);
-
-/**
- * @brief Write data to ADS1115
- *
- * @param[in] ads1115_handle ADS1115 handle
- * @param[in] address Block address inside ADS1115
- * @param[in] data Data to write
- * @param[in] size Data write size
- * @return ESP_OK: Write success. Otherwise failed, please check I2C function fail reason.
- */
-esp_err_t i2c_ads1115_write(i2c_ads1115_handle_t ads1115_handle, uint8_t address, const uint8_t *data, uint32_t size);
 
 esp_err_t i2c_ads1115_write_two_bytes(i2c_ads1115_handle_t ads1115_handle, uint8_t address, const uint16_t *data, uint32_t size);
 

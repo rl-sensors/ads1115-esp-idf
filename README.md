@@ -1,6 +1,8 @@
 # ADS1115 
 A simple driver for the ADS1115 ADC over I2C.
 
+Partially based on [this driver](https://github.com/Molorius/esp32-ads1115/tree/master).
+
 Uses ESP-IDF version 5.4
 
 ### Settings
