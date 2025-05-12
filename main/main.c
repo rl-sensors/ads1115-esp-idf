@@ -101,19 +101,13 @@ void app_main(void)
     const int16_t bits = (1L<<15)-1;
 
     vTaskDelay(pdMS_TO_TICKS(1000));
+    float multiplier = fsr_multiplier(config);
 
     while (1) {
         ESP_ERROR_CHECK(i2c_ads1115_read(ads1115_handle, ADS1115_CONVERSION_REGISTER_ADDR, read_buf, 2));
         raw = ((uint16_t)read_buf[0] << 8) | (uint16_t)read_buf[1];
 
-        // for FSR of 101b (bit 11:9)
-        // voltage = raw * 0.256f / (float)bits;
-        // for FSR of 100b (bit 11:9)
-        voltage = raw * 0.512f / (float)bits;
-        // for FSR of 011b (bit 11:9)
-        voltage = raw * 1.024f / (float)bits;
-        // for FSR of 010b (bit 11:9)
-        voltage = raw * 2.048f / (float)bits;
+        voltage = raw * multiplier / (float)bits;
         ESP_LOGI(TAG, "Raw value %d => %d, %d, voltage: %f", raw, read_buf[0], read_buf[1], voltage);
 
         vTaskDelay(pdMS_TO_TICKS(10));

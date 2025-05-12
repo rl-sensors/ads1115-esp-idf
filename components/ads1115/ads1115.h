@@ -116,6 +116,8 @@ esp_err_t i2c_ads1115_read(i2c_ads1115_handle_t ads1115_handle, uint8_t address,
  */
 void i2c_ads1115_wait_idle(i2c_ads1115_handle_t ads1115_handle);
 
+float fsr_multiplier(ADS1115_CONFIG_REGISTER_Type config);
+
 #ifdef __cplusplus
 }
 #endif

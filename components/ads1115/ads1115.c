@@ -68,3 +68,23 @@ void i2c_ads1115_wait_idle(i2c_ads1115_handle_t ads1115_handle)
     // This is time for ADS1115 Self-Timed Write Cycle
     vTaskDelay(pdMS_TO_TICKS(ads1115_handle->write_time_ms));
 }
+
+
+float fsr_multiplier(ADS1115_CONFIG_REGISTER_Type config) {
+    switch (config.bit.PGA) {
+        case ADS1115_FSR_0_256:
+            return 0.256f;
+        case ADS1115_FSR_0_512:
+            return 0.512f;
+        case ADS1115_FSR_1_024:
+            return 1.024f;
+        case ADS1115_FSR_2_048:
+            return 2.048f;
+        case ADS1115_FSR_4_096:
+            return 4.096f;
+        case ADS1115_FSR_6_144:
+            return 6.144f;
+        default:
+            return 1.0f;
+    }
+}
